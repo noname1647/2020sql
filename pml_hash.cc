@@ -1,4 +1,3 @@
-																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																									#include "pml_hash.h"
 /**
  * PMLHash::PMLHash 
  * 
@@ -7,25 +6,37 @@
  * if the data file does not exist, create it and initial the hash
  */
 PMLHash::PMLHash(const char* file_path) {
-    FILE *fr, *fw;  
-    int len;  
-    char *pbuf, *p;  
-    char dockey[TABLE_SIZE];  
+//    FILE *fr, *fw;  
+//    int len;  
+//    char *pbuf, *p;  
+//    char dockey[TABLE_SIZE];  
   
-    if(file_path == NULL || *file_path == '\0')  
-        return;  
+//    if(file_path == NULL || *file_path == '\0')  
+//        return;  
+//
+//    fr = fopen(file_path, "rb");  //读取文件file_path  
+//    if(fr == NULL)  
+//    {  
+//        printf("open read or write file error!\n");  
+//		
+//        return;  
+//    }  
+    int is_pmem;
+    size_t mapped_len;
 
-    fr = fopen(file_path, "rb");  //读取文件file_path  
-    if(fr == NULL)  
-    {  
-        printf("open read or write file error!\n");  
-		gou zao hash hash biao 
-		
-        return;  
-    }  
-  
+    if ((start_addr = pmem_map_file(file_path, FILE_SIZE, PMEM_FILE_CREATE, 0666, &mapped_len, &is_pmem)) == NULL)
+    {
+        perror("pmem_map_file");
+        exit(1);
+    }
+    else
+    {
+        overflow_addr = (void *)((uint64_t)start_addr + FILE_SIZE / 2);
+        table_arr = (pm_table *)((uint64_t)start_addr + sizeof(metadata));
+        meta = (metadata *)start_addr;
+    }
 }  																																																																																																																
-}							 
+							 
 /**
  * PMLHash::~PMLHash 
  * 
