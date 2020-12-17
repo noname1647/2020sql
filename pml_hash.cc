@@ -70,7 +70,7 @@ void PMLHash::split() {
  * then calculate the index by N module
  */
 uint64_t PMLHash::hashFunc(const uint64_t &key, const size_t &hash_size) {
-
+	return (unsigned long)key%hash_size;
 }
 
 /**
