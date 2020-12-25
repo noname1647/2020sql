@@ -38,7 +38,7 @@ $$ language plpgsql;
 三：
 create or replace function create_table_stu0()
 returns table (
-id integer;
+id integer,
 rand_qq varchar,
 rand_date date)
 as $$
