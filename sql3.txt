@@ -1,0 +1,101 @@
+一：
+create or replace function get_rand_qq_num(out rand_qq varchar) as $$
+declare
+t1 integer;
+t2 integer;
+begin
+t1 := trunc(random() * 2 + 1);
+if t1 = 1 then
+rand_qq := concat(rand_qq, '666');
+else
+rand_qq := concat(rand_qq, '777');
+end if;
+for i in 1..6 loop
+t2 := trunc(random() * 9 + 1);
+rand_qq := concat(rand_qq, t2);
+end loop;
+end;
+$$ language plpgsql;
+
+
+
+二：
+create or replace function get_rand_date(out rand_date date) as $$
+declare
+start_date date := '1997-01-01';
+end_date date := '2021-01-01';
+interval_days integer;
+random_days integer;
+begin
+interval_days := end_date - start_date;
+random_days := trunc(random() * interval_days);
+rand_date := start_date + random_days;
+end;
+$$ language plpgsql;
+
+
+
+三：
+create or replace function create_table_stu0()
+returns table (
+id integer;
+rand_qq varchar,
+rand_date date)
+as $$
+declare
+temp_qq varchar;
+temp_date date;
+begin
+if( to_regclass('stu0') is not null) then
+execute 'truncate table stu0';
+else 
+execute 'create table stu0(id integer, rand_qq varchar, rand_date date, primary key(id))';
+end if;
+for i in 1..10 loop
+temp_qq = get_rand_qq_num();
+temp_date = get_rand_date();
+insert into stu0 values (i, temp_qq, temp_date);
+end loop;
+return query select * from stu0;
+end;
+$$ language plpgsql;
+
+
+
+
+四：
+postgres=# create or replace function create_table_stu1()
+returns table (
+id integer,
+info json
+)
+as $$
+declare
+r stu0%rowtype;
+temp_id integer;
+temp_qq varchar;
+temp_date date;
+temp_json json;
+begin
+if( to_regclass('stu1') is not null) then
+execute 'truncate table stu1';
+else
+execute 'create table stu1(id integer, info json, primary key(id))';
+end if;
+for r in select * from stu0 loop
+temp_id = r.id;
+temp_qq = r.rand_qq;
+temp_date = r.rand_date;
+temp_json = json_build_object('rand_qq', temp_qq, 'rand_date', temp_date);
+insert into stu1 values(temp_id, temp_json);
+end loop;
+return query select * from stu1;
+end;
+$$ language plpgsql;
+
+
+
+五：
+SELECT substr((stu1.info->'rand_qq')::varchar, 2, 11) as qq
+FROM stu1
+WHERE to_date(substr((stu1.info->'rand_date')::varchar,2,10),'YYYY-MM-DD') <= to_date('1998-12-12', 'YYYY-MM-DD');
